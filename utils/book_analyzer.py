@@ -163,6 +163,14 @@ from typing import List
 llm = get_llm()
 str_parser = StrOutputParser()
 
+# ── One LLM per task — spreads load across model rate limit buckets ──
+# Model limits: TPM / TPD
+llm_summary         = get_llm(model="openai/gpt-oss-20b")                         # 8K TPM  / 200K TPD — analytical
+llm_genre           = get_llm(model="llama-3.1-8b-instant")                       # 6K TPM  / 500K TPD — fast, structured output
+llm_personality     = get_llm(model="moonshotai/kimi-k2-instruct")                # 10K TPM / 300K TPD — creative, witty
+llm_recommendations = get_llm(model="qwen/qwen3-32b")                             # 6K TPM  / 500K TPD — strong reasoning, book knowledge
+llm_reviews         = get_llm(model="meta-llama/llama-4-scout-17b-16e-instruct")  # 30K TPM / 500K TPD — highest TPM, handles large review payloads
+
 # ── Pydantic models ──────────────────────────────────────────
 
 class Genre(BaseModel):
@@ -233,7 +241,7 @@ def fetch_user_books(user_id: int) -> dict:
     }
 
 def get_reading_summary(read_titles: list, num_read_books: int, currently_reading_titles: list, style: str = "witty and warm", length: str = "short (1 or 2 paragraphs)") -> str:
-    chain = reading_summary_prompt | llm | str_parser
+    chain = reading_summary_prompt | llm_summary | str_parser
     return chain.invoke({
         "books": read_titles,
         "num_read_books": num_read_books,
@@ -244,7 +252,7 @@ def get_reading_summary(read_titles: list, num_read_books: int, currently_readin
 
 def get_genre_analysis(read_titles: list) -> GenreOutput:
     parser = PydanticOutputParser(pydantic_object=GenreOutput)
-    chain = genre_analysis_prompt | llm | parser
+    chain = genre_analysis_prompt | llm_genre | parser
     return chain.invoke({
         "books": read_titles,
         "format_instructions": parser.get_format_instructions()
@@ -252,7 +260,7 @@ def get_genre_analysis(read_titles: list) -> GenreOutput:
 
 def get_personality_card(read_titles: list) -> PersonalityCard:
     parser = PydanticOutputParser(pydantic_object=PersonalityCard)
-    chain = personality_prompt | llm | parser
+    chain = personality_prompt | llm_personality | parser
     return chain.invoke({
         "books": read_titles,
         "format_instructions": parser.get_format_instructions()
@@ -260,7 +268,7 @@ def get_personality_card(read_titles: list) -> PersonalityCard:
 
 def get_recommendations(read_titles: list) -> RecommendationOutput:
     parser = PydanticOutputParser(pydantic_object=RecommendationOutput)
-    chain = recommendation_prompt | llm | parser
+    chain = recommendation_prompt | llm_recommendations | parser
     return chain.invoke({
         "books": read_titles,
         "format_instructions": parser.get_format_instructions()
@@ -268,7 +276,7 @@ def get_recommendations(read_titles: list) -> RecommendationOutput:
 
 def get_review_analysis(books_with_reviews: list) -> ReviewAnalysis:
     parser = PydanticOutputParser(pydantic_object=ReviewAnalysis)
-    chain = review_prompt | llm | parser
+    chain = review_prompt | llm_reviews | parser
     max_books = _max_books_within_token_limit(books_with_reviews)
     return chain.invoke({
         "books_with_reviews": books_with_reviews[:max_books],
