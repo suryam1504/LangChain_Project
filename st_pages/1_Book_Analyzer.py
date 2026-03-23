@@ -87,7 +87,7 @@ if user_data:
     st.success(f"Found {user_data['num_read_books']} books!")
 
     # ── Quick debug view ──────────────────────────────────
-    with st.expander("📖 Raw data (debug)"):
+    with st.expander("📖 All the books you have read!"):
         st.write(f"**Read titles ({len(user_data['read_titles'])}):**")
         st.write(user_data["read_titles"])
         st.write(f"**Currently reading:** {user_data['currently_reading_titles']}")
