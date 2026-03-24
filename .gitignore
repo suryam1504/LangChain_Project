@@ -15,8 +15,8 @@ __pycache__/
 # Chroma vector store data
 chroma_db/
 
-# Streamlit cache
-.streamlit/
+# Streamlit — only ignore secrets, not config
+.streamlit/secrets.toml
 
 # OS files
 .DS_Store
