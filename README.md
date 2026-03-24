@@ -6,7 +6,7 @@ A **LangChain-powered** Streamlit web app that takes any public Goodreads profil
 
 ## Demo
 
-![Demo](/Users/suryamgupta/Documents/LangChain_Project/pictures/book_analyzer_pic.png)
+![Demo](pictures/book_analyzer_pic.png)
 
 Try it with this sample profile:
 `https://www.goodreads.com/user/show/142334643-suryam-gupta`
