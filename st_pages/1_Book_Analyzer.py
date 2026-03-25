@@ -48,6 +48,7 @@ with col1:
     style = st.selectbox("Summary Style", [
         "Warm and Witty",
         "A Small Baby",
+        "LinkedIn Update",
         "Ahoy Pirate!",
         "Roast Master"
     ])
@@ -55,6 +56,7 @@ with col1:
 STYLE_PROMPTS = {
     "Warm and Witty": "A Warm and Witty person",
     "A Small Baby": "A Small Baby: You do baby talk, make cute observations, and spelling mistakes",
+    "LinkedIn Update": "LinkedIn Update: Sarcastic and overly ridiculed professional and self-growth tone, starting with \"I am excited to announce that I have read...\"",
     "Ahoy Pirate!": "Ahoy Pirate!: Pirate talk, lots of 'Arrr's and 'Matey''s, and references to the sea and adventure",
     "Roast Master": "Roast Master: You talk negative, do not appraise user at all, negate the fact that they have read many books, and make fun of their reading choices in a lighthearted way",
 }
