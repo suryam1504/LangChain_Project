@@ -162,16 +162,27 @@ from utils.output_utils import make_safe_parser
 from pydantic import BaseModel, Field
 from typing import List
 
-llm = get_llm()
 str_parser = StrOutputParser()
 
 # ── One LLM per task — spreads load across model rate limit buckets ──
-# Model limits: TPM / TPD
-llm_summary         = get_llm(model="llama-3.3-70b-versatile",                    max_tokens=1024)  # 8K TPM  / 200K TPD — analytical
-llm_genre           = get_llm(model="meta-llama/llama-4-scout-17b-16e-instruct",  max_tokens=3000)  # 30K TPM / 500K TPD — reliable structured output, room for full JSON
-llm_personality     = get_llm(model="moonshotai/kimi-k2-instruct",                max_tokens=1024)  # 10K TPM / 300K TPD — creative, witty
-llm_recommendations = get_llm(model="qwen/qwen3-32b",                             max_tokens=2500)  # 6K TPM  / 500K TPD — strong reasoning, book knowledge
-llm_reviews         = get_llm(model="meta-llama/llama-4-scout-17b-16e-instruct",  max_tokens=1500)  # 30K TPM / 500K TPD — highest TPM, handles large review payloads
+# Lazily initialized on first use so st.secrets is available.
+llm = None
+llm_summary         = None
+llm_genre           = None
+llm_personality     = None
+llm_recommendations = None
+llm_reviews         = None
+
+def _init_llms():
+    global llm, llm_summary, llm_genre, llm_personality, llm_recommendations, llm_reviews
+    if llm is not None:
+        return
+    llm                 = get_llm()
+    llm_summary         = get_llm(model="llama-3.3-70b-versatile",                    max_tokens=1024)  # 8K TPM  / 200K TPD — analytical
+    llm_genre           = get_llm(model="meta-llama/llama-4-scout-17b-16e-instruct",  max_tokens=3000)  # 30K TPM / 500K TPD — reliable structured output, room for full JSON
+    llm_personality     = get_llm(model="moonshotai/kimi-k2-instruct",                max_tokens=1024)  # 10K TPM / 300K TPD — creative, witty
+    llm_recommendations = get_llm(model="qwen/qwen3-32b",                             max_tokens=2500)  # 6K TPM  / 500K TPD — strong reasoning, book knowledge
+    llm_reviews         = get_llm(model="meta-llama/llama-4-scout-17b-16e-instruct",  max_tokens=1500)  # 30K TPM / 500K TPD — highest TPM, handles large review payloads
 
 # ── Pydantic models ──────────────────────────────────────────
 
@@ -243,6 +254,7 @@ def fetch_user_books(user_id: int) -> dict:
     }
 
 def get_reading_summary(read_titles: list, num_read_books: int, currently_reading_titles: list, style: str = "witty and warm", length: str = "short (1 or 2 paragraphs)") -> str:
+    _init_llms()
     chain = reading_summary_prompt | llm_summary | str_parser
     return chain.invoke({
         "books": read_titles,
@@ -253,6 +265,7 @@ def get_reading_summary(read_titles: list, num_read_books: int, currently_readin
     })
 
 def get_genre_analysis(read_titles: list) -> GenreOutput:
+    _init_llms()
     parser = PydanticOutputParser(pydantic_object=GenreOutput)
     chain = genre_analysis_prompt | llm_genre | make_safe_parser(GenreOutput)
     return chain.invoke({
@@ -261,6 +274,7 @@ def get_genre_analysis(read_titles: list) -> GenreOutput:
     })
 
 def get_personality_card(read_titles: list) -> PersonalityCard:
+    _init_llms()
     parser = PydanticOutputParser(pydantic_object=PersonalityCard)
     chain = personality_prompt | llm_personality | make_safe_parser(PersonalityCard)
     return chain.invoke({
@@ -272,6 +286,7 @@ def get_genre_and_personality(read_titles: list) -> dict:
     """Run genre analysis and personality card in parallel via RunnableParallel.
     Returns dict with 'genres' (GenreOutput) and 'personality' (PersonalityCard).
     """
+    _init_llms()
     genre_parser = PydanticOutputParser(pydantic_object=GenreOutput)
     personality_parser = PydanticOutputParser(pydantic_object=PersonalityCard)
 
@@ -291,6 +306,7 @@ def get_recommendations(read_titles: list) -> RecommendationOutput:
     """Genre → Recommendations sequential chain.
     First identifies top genres, then uses them to give more targeted recommendations.
     """
+    _init_llms()
     genre_parser = PydanticOutputParser(pydantic_object=GenreOutput)
     rec_parser = PydanticOutputParser(pydantic_object=RecommendationOutput)
 
@@ -311,6 +327,7 @@ def get_recommendations(read_titles: list) -> RecommendationOutput:
     return sequential_chain.invoke({"books": read_titles})
 
 def get_review_analysis(books_with_reviews: list) -> ReviewAnalysis:
+    _init_llms()
     parser = PydanticOutputParser(pydantic_object=ReviewAnalysis)
     chain = review_prompt | llm_reviews | make_safe_parser(ReviewAnalysis)
     max_books = _max_books_within_token_limit(books_with_reviews)

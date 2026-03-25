@@ -9,7 +9,7 @@ _CHAT_MODELS = [
     "meta-llama/llama-4-scout-17b-16e-instruct",
     "llama-3.1-8b-instant",
 ]
-_chat_llms = [get_llm(model=m, temperature=0.7, max_tokens=512) for m in _CHAT_MODELS]
+_chat_llms = None  # lazily initialized on first call, after st.secrets is loaded
 
 
 def _build_system_prompt(user_data: dict) -> str:
@@ -57,6 +57,10 @@ def get_chat_response(user_message: str, chat_history: list, user_data: dict) ->
             messages.append(AIMessage(content=msg["content"]))
 
     messages.append(HumanMessage(content=user_message))
+
+    global _chat_llms
+    if _chat_llms is None:
+        _chat_llms = [get_llm(model=m, temperature=0.7, max_tokens=512) for m in _CHAT_MODELS]
 
     last_error = None
     for llm in _chat_llms:
