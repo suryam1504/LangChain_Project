@@ -236,3 +236,7 @@ with st.sidebar:
                 response = get_chat_response(user_msg, history_so_far, _user_data)
             st.session_state.chat_history.append({"role": "assistant", "content": response})
             st.rerun()
+
+# ── Footer ───────────────────────────────────────────────────
+st.markdown("---")
+st.markdown("Built by [Suryam Gupta](https://linkedin.com/in/suryamgupta)")
