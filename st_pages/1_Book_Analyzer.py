@@ -83,7 +83,11 @@ if st.button("Analyze", type="primary"):
             for key in ["personality", "genre_result", "review", "recs", "chat_history"]:
                 st.session_state.pop(key, None)
             with st.spinner("Fetching your books..."):
-                st.session_state.user_data = cached_fetch_user_books(gr_id)
+                try:
+                    st.session_state.user_data = cached_fetch_user_books(gr_id)
+                except PermissionError as e:
+                    st.error(f"🔒 {e}")
+                    st.stop()
             st.session_state.gr_id = gr_id
 
 user_data = st.session_state.get("user_data")

@@ -25,9 +25,11 @@ def _build_system_prompt(user_data: dict) -> str:
 
     for b in read_books:
         review_excerpt = (b.get("review_text") or "")[:300].replace("\n", " ")
+        review_date = (b.get("review_published_on") or "")[:16]  # e.g. "Sun, 25 Jan 2026"
         lines.append(
             f"- {b['book_title']} | {b['book_author']} | "
-            f"{b.get('rating', '?')}/5 | avg {b.get('avg_rating', '?')} | {review_excerpt}"
+            f"{b.get('rating', '?')}/5 | avg {b.get('avg_rating', '?')} | "
+            f"reviewed: {review_date or 'N/A'} | {review_excerpt}"
         )
 
     lines += [

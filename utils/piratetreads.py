@@ -10,6 +10,8 @@ def get_books(user_id: int, shelf: str = "read"):
     while True:
         url = f"https://api.piratereads.com/{user_id}/{shelf}?per_page={per_page}&page={page}"
         response = requests.get(url)
+        if response.status_code == 401:
+            raise PermissionError(f"Goodreads profile {user_id} is private. Make your profile public to use this app.")
         if not response.ok or not response.text.strip().startswith("{"):
             break
         books = response.json().get("books", [])
