@@ -35,9 +35,9 @@ def cached_recommendations(books_tuple: tuple):
     result = get_recommendations(list(books_tuple))
     return [r.model_dump() for r in result.recommendations]
 
-st.set_page_config(page_title="Book Analyzer", page_icon="📚", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Goodreads Book Analyzer", page_icon="📚", initial_sidebar_state="expanded")
 
-st.title("📚 Book Analyzer")
+st.title("📚 Goodreads Book Analyzer")
 st.caption("Enter a Goodreads profile link to analyze your reading personality.")
 st.caption("If you don't have one and are just trying out this website, you can use this sample profile: https://www.goodreads.com/user/show/142334643-suryam-gupta")
 st.info("💬 **BookBot** is available in the sidebar — click the >> arrow on the top left to open it!", icon=None)
